@@ -1,0 +1,147 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Navigation</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/nav.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/global.css' %}">
+</head>
+<body>
+    <nav class="navigation">
+        <ul class="navTabs">
+            <li><img src="{% static 'assets/logo.png'%}" alt="BioSpot logo" /></li>
+            <li class="{% if request.path == '/' %}active{% endif %}"><a href="{% url 'home' %}">Home</a></li>
+            {% if profile.type == 'admin' or profile.type == 'urednik' %}
+                <li class="{% if request.path == '/records/' %}active{% endif %}"><a href="{% url 'recordsPage' %}">Records</a></li>
+                <li class="{% if request.path == '/upload/' %}active{% endif %}"><a href="{% url 'upload' %}">Upload</a></li>
+            {% elif profile.type == 'standard' %}
+                <li class="{% if request.path == '/upload/' %}active{% endif %}"><a href="{% url 'upload' %}">Upload</a></li>
+            {% endif %}
+        </ul>
+        <ul class="profileTabs">
+            {% if user.is_authenticated %}
+            <li>
+                <button class="avatar-button" onclick="toggleDropdown()">
+                    <div class="user-info">
+                        <img src="{% static 'assets/avatar_icon.svg' %}" alt="avatar icon" />
+                        <div>
+                            <div class="dropdown-name">{{ user.first_name }} {{ user.last_name }}</div>
+                            <div class="dropdown-email">{{ user.email }}</div>
+                        </div>
+                    </div>
+                </button>
+                
+                <ul id="profile-options" class="dropdown">
+                    <li>
+                        <form id="logout-form" action="{% url 'logout' %}" method="post">
+                            {% csrf_token %}
+                            <button class="logout-btn" type="submit">Logout</button>
+                        </form>
+                    </li>
+                </ul>
+            </li>
+            {% else %}
+            <li><a class="btn1" href="{% url 'login' %}">Login</a></li>
+            {% endif %}
+        </ul>
+    </nav>
+
+    <nav class="mobile-navigation">
+        <ul class="navbar">
+            <li><img src="{% static 'assets/logo.png' %}" alt="BioSpot logo" /></li>
+            <li>
+                <button class="avatar-button" onclick="toggleDropdownMobile()">
+                    <img class="menu-icon show" src="{% static 'assets/burger_menu.png' %}" alt="Menu icon" />
+                    <img class="close-icon" src="{% static 'assets/close_icon.svg' %}" alt="Close icon" />
+                </button>
+            </li>
+        </ul>
+        <div class="mobile-dropdown">
+            <ul class="navTabs-mobile">
+                <li class="{% if request.path == '/' %}active{% endif %}"><a href="{% url 'home' %}">Home</a></li>
+                {% if profile.type == 'admin' or profile.type == 'urednik' %}
+                    <li class="{% if request.path == '/records/' %}active{% endif %}"><a href="{% url 'recordsPage' %}">Records</a></li>
+                    <li class="{% if request.path == '/uploads/' %}active{% endif %}"><a href="{% url 'upload' %}">Upload</a></li>
+                {% elif profile.type == 'standard' %}
+                    <li class="{% if request.path == '/user_dashboard/' %}active{% endif %}"><a href="{% url 'user_dashboard' %}">User Dashboard</a></li>
+                {% endif %}
+                <li class="line"></li>
+                {% if user.is_authenticated %}
+                <li>
+                    <div class="user-info">
+                        <img src="{% static 'assets/avatar_icon.svg' %}" alt="avatar icon" />
+                        <div>
+                            <div class="dropdown-name">{{ user.first_name }} {{ user.last_name }}</div>
+                            <div class="dropdown-email">{{ user.email }}</div>
+                        </div>
+                    </div>
+                </li>
+                <li>
+                    <form id="logout-form" action="{% url 'logout' %}" method="post">
+                        {% csrf_token %}
+                        <button class="logout-btn" type="submit">Logout</button>
+                    </form>
+                </li>
+                {% else %}
+                <li><a href="{% url 'login' %}">Login</a></li>
+                {% endif %}
+            </ul>
+        </div>
+    </nav>
+</body>
+<script>
+    function toggleDropdown() {
+        const dropdown = document.getElementById('profile-options');
+        if (dropdown.classList.contains('show')) {
+            dropdown.classList.remove('show');
+        } else {
+            dropdown.classList.add('show');
+        }
+    }
+    function toggleDropdownMobile() {
+        const mobileDropdown = document.querySelector('.mobile-dropdown');
+        if (mobileDropdown.classList.contains('show')) {
+            mobileDropdown.classList.remove('show');
+        } else {
+            mobileDropdown.classList.add('show');
+        }
+        toggleIcons()
+    }
+
+    function toggleIcons() {
+        const menuIcon = document.querySelector('.menu-icon');
+        const closeIcon = document.querySelector('.close-icon');
+        if (menuIcon.classList.contains('show')) {
+            menuIcon.classList.remove('show');
+            closeIcon.classList.add('show');
+        } else {
+            menuIcon.classList.add('show');
+            closeIcon.classList.remove('show');
+        }
+    }
+    async function logout(event) {
+        event.preventDefault();
+    
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    
+        try {
+            const response = await fetch("/logout/", {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken,
+                },
+            });
+    
+            const result = await response.json();
+            if (response.ok) {
+                window.location.href = '/';
+            } else {
+                console.error('Logout failed:', result.message);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    }
+</script>
+</html>

@@ -1,0 +1,206 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>BioSpot - Records</title>
+    <link rel="icon" type="image/x-icon" href="{% static 'assets/favicon.ico' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/records.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/global.css' %}">
+</head>
+<body>
+    {% include 'navigation/_nav.html' %}
+    <main>
+        <h1 class="header">Records</h1>
+        <div class="mini-nav">
+            <ul>
+                <li id="waiting" onclick="filterRecords('none')" tabindex="0">Waiting on approval</li>
+                <li id="approved" onclick="filterRecords('true')" tabindex="0">Approved</li>
+                <li id="rejected" onclick="filterRecords('false')" tabindex="0">Rejected</li>
+            </ul>
+        </div>
+        <h2 class="filtered-data">
+            <span id="totalRecords">{{ records_data|length }}</span> record(s) found
+        </h2>
+        <div class="accordion">
+            {% for record in records_data %}
+                <div class="accordion-item accordion-item-records" id="record_{{ record.id }}">
+                    <h3 role="button" aria-expanded="false" aria-controls="content_{{ record.id }}" onclick="openAccordion({{ record.id }})" tabindex="0">Record #{{ record.id }}</h3>
+                    <div class="accordion-content" id="content_{{ record.id }}">
+                        <div class="record-row-wrapper diff-background">
+                            <div class="record-row-header">Full name</div>
+                            <div>{{ record.first_name }} {{ record.last_name }}</div>
+                        </div>
+                        <div class="record-row-wrapper">
+                            <div class="record-row-header">Email</div>
+                            <div>{{ record.email }}</div>
+                        </div>
+                        <div class="record-row-wrapper diff-background">
+                            <div class="record-row-header">Plant name</div>
+                            <div>{{ record.plant_name_serbian }}</div>
+                        </div>
+                        <div class="record-row-wrapper">
+                            <div class="record-row-header">Plant name latin</div>
+                            <div>{{ record.plant_name_latin }}</div>
+                        </div>
+                        <div class="record-row-wrapper diff-background">
+                            <div class="record-row-header">Plant species</div>
+                            <div>{{ record.plant_species_serbian }}</div>
+                        </div>
+                        <div class="record-row-wrapper">
+                            <div class="record-row-header">Plant species latin</div>
+                            <div>{{ record.plant_species_latin }}</div>
+                        </div>
+                        <div class="record-row-wrapper diff-background">
+                            <div class="record-row-header">About</div>
+                            <div>{{ record.about }}</div>
+                        </div>
+                        <div class="record-row-wrapper">
+                            <div class="record-row-header">Attachments</div>
+                            <div>
+                                <button class="btn2" onclick="preview({{ record.file_urls }}, {{ forloop.counter }})">Preview Images</button>
+                                <div id="myModal{{ forloop.counter }}" class="modal">
+                                    <span class="close">&times;</span>
+                                    <span class="prev">&lt;</span>
+                                    <img class="modal-content img01" alt="">
+                                    <span class="next">&gt;</span>
+                                    <div class="caption"></div>
+                                </div>
+                            </div>
+                        </div>
+                        {% if record.approved == True %}
+                        <div class="record-row-wrapper approved-by">
+                            <div class="record-row-header">Approved by</div>
+                            <div>{{record.approved_by_full_name}} <span>({{record.approved_by_email}})</span></div>
+                        </div>
+                        {% endif %}
+                        {% if record.approved == False %}
+                        <div class="record-row-wrapper rejected-by">
+                            <div class="record-row-header">Rejected by</div>
+                            <div>{{record.rejected_by_full_name}} <span>({{record.rejected_by_email}})</span></div>
+                        </div>
+                        {% endif %}
+                        <div class="button-options">
+                            {% if record.approved == None %}
+                                <form method="post" action="{% url 'approve_record' record.id %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn2">Approve</button>
+                                </form>
+                                <form method="post" action="{% url 'reject_record' record.id %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn4">Reject</button>
+                                </form>
+                            {% endif %}
+                            {% if record.approved == True %}
+                                <form method="post" action="{% url 'revoke_status' record.id %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn4">Revoke Approval</button>
+                                </form>
+                            {% endif %}
+                            {% if record.approved == False %}
+                                <form method="post" action="{% url 'revoke_status' record.id %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn4">Revoke Rejection</button>
+                                </form>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </main>
+    <script>
+        function filterRecords(status) {
+            let url = new URL(window.location.href);
+            if (status === 'none') {
+                url.searchParams.delete('approved');
+            } else {
+                url.searchParams.set('approved', status);
+            }
+            window.location.href = url.toString();
+        }
+
+        // Highlight the selected filter
+        document.addEventListener('DOMContentLoaded', (event) => {
+            const filter = "{{ approved_filter }}";
+            if (filter === 'true') {
+                document.getElementById('approved').classList.add('selected');
+            } else if (filter === 'false') {
+                document.getElementById('rejected').classList.add('selected');
+            } else {
+                document.getElementById('waiting').classList.add('selected');
+            }
+        });
+
+        function openAccordion(recordId) {
+            const accordionItem = document.getElementById(`record_${recordId}`);
+            const content = accordionItem.querySelector(".accordion-content");
+            const heading = accordionItem.querySelector("h3");
+
+            const isOpen = accordionItem.classList.toggle("open");
+            accordionItem.classList.toggle("rotate");
+            heading.setAttribute("aria-expanded", isOpen);
+            if (isOpen) {
+                content.style.height = content.scrollHeight + "px";
+            } else {
+                content.style.height = "0px";
+            }
+
+            // Close other accordions
+            document.querySelectorAll('.accordion-item').forEach(item => {
+                if (item.id !== `record_${recordId}`) {
+                    item.classList.remove("open");
+                    item.classList.remove("rotate");
+                    item.querySelector("h3").setAttribute("aria-expanded", "false");
+                    item.querySelector(".accordion-content").style.height = "0px";
+                }
+            });
+        }
+
+        document.querySelectorAll('.accordion-item h3').forEach((heading) => {
+            heading.addEventListener('keydown', (event) => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                    const recordId = heading.getAttribute("aria-controls").split('_')[1];
+                    openAccordion(recordId);
+                }
+            });
+        });
+
+
+        function preview(images, id_counter) {
+            var currentIndex = 0;
+            
+            var modal = document.getElementById("myModal" + id_counter);
+            var modalImg = modal.querySelector(".img01");
+            var caption = modal.querySelector(".caption");
+        
+            function showImage(index) {
+                modal.style.display = "block";
+                modalImg.src = images[index];
+                currentIndex = index;
+            }
+        
+            var span = modal.querySelector(".close");
+            var prev = modal.querySelector(".prev");
+            var next = modal.querySelector(".next");
+        
+            span.onclick = function() {
+                modal.style.display = "none";
+                console.log("close clicked");
+            }
+        
+            next.onclick = function() {
+                currentIndex = (currentIndex + 1) % images.length;
+                showImage(currentIndex);
+            }
+        
+            prev.onclick = function() {
+                currentIndex = (currentIndex - 1 + images.length) % images.length;
+                showImage(currentIndex);
+            }
+        
+            showImage(currentIndex);
+        }
+        
+    </script>
+</body>
+</html>

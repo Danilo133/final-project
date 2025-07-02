@@ -1,0 +1,120 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>BioSpot - Login</title>
+    <link rel="stylesheet" type="text/css" href="{% static 'css/login.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/global.css' %}">
+    <link rel="icon" type="image/x-icon" href="{% static 'assets/favicon.ico' %}">
+</head>
+<body>
+    {% include '../navigation/_nav.html' %}
+    <div class="container">
+        <div class="form">
+            <div class="login-form">
+                <img src="{% static 'assets/logo_black.png'%}" alt="BioSpot black logo" />
+                <h1>Log in to your account</h1>
+                <div id="message" class="message"></div>
+                <form id="login-form">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input type="email" id="email" name="email" onfocus="removeValidationFail(this)" required />
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <input type="password" id="password" name="password" onfocus="removeValidationFail(this)" required />
+                    </div>
+                    <button type="button" class="btn2 submit-btn" onclick="login()">Log in</button>
+                    <div class="error-message"></div>
+                    <p>Don't have an account? <a class="form-link" href="{% url 'register' %}">Register here</a></p>
+                </form>
+            </div>
+        </div>
+        <div class="img-wrapper">
+            {% comment %} <img src="{% static 'assets/login.jpg'%}" alt="tree" /> {% endcomment %}
+        </div> 
+    </div>
+</body>
+<script>
+    function validateForm() {
+        let isValid = true;
+        const requiredFields = ['email', 'password'];
+        requiredFields.forEach(fieldId => {
+            const field = document.getElementById(fieldId);
+            if (!field.value) {
+                field.classList.add('validationFail');
+                isValid = false;
+            } else {
+                field.classList.remove('validationFail');
+            }
+        });
+    
+        if (!isValid) {
+            showError('Please fill out all the required fields.');
+        }
+    
+        return isValid;
+    }
+
+    function removeValidationFail(element) {
+        element.classList.remove('validationFail');
+    }
+
+    function showError(messageContent, duration = 10000) {
+        const errorMessage = document.querySelector('.error-message');
+        errorMessage.textContent = messageContent;
+        errorMessage.style.display = 'block';
+        setTimeout(() => {
+            errorMessage.classList.add('fade-out');
+        }, duration);
+        setTimeout(() => {
+            errorMessage.style.display = 'none';
+            errorMessage.classList.remove('fade-out');
+        }, duration + 500);
+    }
+
+    async function login() {
+        if (!validateForm()) {
+            return;
+        }
+    
+        const form = document.getElementById('login-form');
+        const formData = new FormData(form);
+    
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    
+        try {
+            const response = await fetch(`{% url 'login_user' %}`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken,
+                    'Accept': 'application/json',
+                },
+                body: formData,
+            });
+            if (response.ok) {
+                const result = await response.json();
+                window.location.href = '/';
+            } else {
+                const result = await response.json();
+                showError(result.message)
+            }
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    }
+    
+    function getQueryParam(param) {
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get(param);
+    }
+
+    document.addEventListener("DOMContentLoaded", function() {
+        const message = getQueryParam('message');
+        if (message) {
+            document.getElementById('message').innerText = decodeURIComponent(message);
+        }
+    });
+</script>
+</html>

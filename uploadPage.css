@@ -1,0 +1,132 @@
+body {
+    margin: 0;
+}
+
+.form-wrapper {
+    display: flex;
+    justify-content: center;
+    padding: 50px 0;
+}
+.upper-text {
+    flex-direction: column;
+    /* border-bottom: 1px solid #d0d0d0; */
+}
+.upper-text h2 {
+    margin-bottom: 5px;
+}
+.upper-text p {
+    margin-top: 0
+}
+.text-gray {
+    color: #737373;
+}
+
+.form-container {
+    width: 80%;
+}
+
+.form-group {
+    padding: 20px 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    /* border-bottom: 1px solid #d0d0d0; */
+}
+.select-btn-wrapper {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+.area-text {
+    margin: 0;
+    margin-top: 5px;
+}
+.area-wrapper {
+    width: 50%;
+}
+.form-group input,
+.form-group select {
+    width: 50%;
+    height: 30px;
+    border: 1px solid #a2a2a2;
+    border-radius: 5px;
+    padding: 0 5px;
+    box-sizing: border-box; 
+    font-family: inherit; 
+    font-size: inherit; 
+    appearance: none;
+}
+#about {
+    width: 100%;
+    resize: none;
+}
+.form-group select {
+    padding: 0 10px;
+}
+
+.form-group textarea {
+    border: 1px solid #a2a2a2;
+    border-radius: 5px;
+    /* width: 50%; */
+}
+
+.validationFail {
+    border: 2px solid #EB0000 !important;
+}
+.percentage-wrapper {
+    display: flex;
+    justify-content: flex-end;
+}
+.progress-bar-container {
+    display: none;
+    width: 100%;
+    margin-top: 20px;
+}
+.progress-bar {
+    width: 0%;
+    background-color: #43CEA4;
+    text-align: center;
+    line-height: 30px;
+    color: white;
+    border-radius: 50px;
+    height: 10px;
+}
+.error-message, 
+.success-message, 
+.upload-error-message {
+    display: none;
+    margin-top: 20px;
+    font-weight: bold;
+}
+.error-message,
+.upload-error-message {
+    color: #EB0000 ;
+}
+.text-red-bold {
+    color: #EB0000;
+    font-weight: bold;
+}
+.success-message {
+    color: #43CEA4;
+}
+
+.fade-out {
+    animation: fadeOut 0.5s ease-in-out forwards;
+}
+@keyframes fadeOut {
+    to {
+        opacity: 0;
+    }
+}
+
+@media (max-width: 767px) {
+    .form-group {
+        flex-direction: column;
+        gap: 10px;
+    }
+    .form-group input,
+    .form-group select,
+    .area-wrapper {
+        width: 90%;
+    }
+}

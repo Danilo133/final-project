@@ -1,0 +1,166 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>BioSpot</title>
+    <link rel="icon" type="image/x-icon" href="{% static 'assets/favicon.ico' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/home.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/global.css' %}">
+</head>
+<body id="homepage">
+    {% include 'navigation/_nav.html' %}
+    <div class="hero-section">
+        <div class="text-wrapper">
+            <div class="content">
+                <h1>
+                    Want to know what plant <br />
+                    <span class="highlight">you've just found?</span>
+                </h1>
+                <p>
+                    Discover how to identify plants easily with BioSpot, BioSpot is a free online tool that will help you find out which plant you're looking at.
+                </p>
+            </div>
+        </div>
+        <div class="img-wrapper">
+            <img src="{% static 'assets/hero_image.png'%}" alt="Plant identification" />
+        </div>
+    </div>
+
+
+    <div class="about-first-section">
+        <div class="img-wrapper" style="background-image: url('{% static 'assets/about_1.jpg' %}')">
+        </div>
+        <div class="text-wrapper">
+            <img src="{% static 'assets/about_icon_1.png' %}" alt="About icon 1" />
+            <h2>
+                Learn more about different plants in a fun way
+            </h2>
+            <p>
+                BioSpot lets you explore the world of plants, uncovering their habitats and cultural significance. Find new species and learn all about their unique adaptations in a fun way. It's like going on a plant treasure hunt, where every discovery is a new adventure.
+            </p>
+        </div>
+    </div>
+
+
+    <div class="about-second-section">
+        <div class="text-wrapper">
+            <img src="{% static 'assets/about_icon_2.png' %}" alt="About icon 2" />
+            <h2>
+                Get great answers in a few seconds
+            </h2>
+            <p>
+                Just upload a picture on BioSpot and you'll get instant answers! It's an exciting and free way to dive into the world of plants without needing any special knowledge.
+            </p>
+        </div>
+        <div class="img-wrapper" style="background-image: url('{% static 'assets/about_2.jpg' %}')">
+        </div>
+    </div>
+
+
+    <div class="faq-section">
+        <h2>
+            Frequently Asked Questions
+        </h2>
+        <div class="accordion">
+            <div class="accordion-item" >
+                <h3 role="button" aria-expanded="false" aria-controls="content1" onclick="openAccordion(0)" tabindex="0">
+                    How does BioSpot work?
+                </h3>
+                <div class="accordion-content" id="content1">
+                    <p>
+                        BioSpot uses advanced AI technology to analyze uploaded photos and identify plants based on their unique features, such as leaves, flowers, and stems, providing accurate results instantly.
+                    </p>
+                </div>
+            </div>
+            <div class="accordion-item">
+                <h3 role="button" aria-expanded="false" aria-controls="content2" onclick="openAccordion(1)" tabindex="0">
+                    What are the benefits of using BioSpot?
+                </h3>
+                <div class="accordion-content" id="content2">
+                    <p>
+                        BioSpot provides an easy-to-use platform where you can learn about plants, their habitats, and cultural significance. It makes discovering and understanding plants simple and fun.
+                    </p>
+                </div>
+            </div>
+            <div class="accordion-item">
+                <h3 role="button" aria-expanded="false" aria-controls="content3" onclick="openAccordion(2)" tabindex="0">
+                    How can I contribute to the project?
+                </h3>
+                <div class="accordion-content" id="content3">
+                    <p>
+                        You can help by uploading photos of plants, adding to the database, and even donating to support the project. Every little bit makes a big difference.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="footer-section">
+        <p>© 2024 BioSpot. All rights reserved.</p>
+        <img src="{% static 'assets/logo_black.png'%}" alt="BioSpot footer logo" />
+    </div>    
+</body>
+<script>
+    const openAccordion = (index) => {
+        const accordion = document.getElementsByClassName("accordion-item");
+
+        for (let i = 0; i < accordion.length; i++) {
+            const content = accordion[i].querySelector(".accordion-content");
+            const heading = accordion[i].querySelector("h3");
+
+            if (index === i) {
+                const isOpen = accordion[index].classList.toggle("open");
+                accordion[index].classList.toggle("rotate");
+                heading.setAttribute("aria-expanded", isOpen);
+                if (isOpen) {
+                    content.style.height = content.scrollHeight + "px";
+                } else {
+                    content.style.height = "0px";
+                }
+            } else {
+            accordion[i].classList.remove("open");
+            accordion[i].classList.remove("rotate");
+            heading.setAttribute("aria-expanded", "false");
+            content.style.height = "0px";
+            }
+        }
+    };
+
+    document.querySelectorAll('.accordion-item h3').forEach((heading, index) => {
+        heading.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter' || event.key === ' ') {
+                openAccordion(index);
+            }
+        });
+    });
+
+
+    document.addEventListener("DOMContentLoaded", function() {
+        const imgAboutFirstRight = document.querySelector('.about-first-section .img-wrapper');
+        const aboutFirstLeft = document.querySelector('.about-second-section .img-wrapper');
+        
+
+        function isInViewport(element) {
+            const rect = element.getBoundingClientRect();
+            return (
+                rect.top >= 0 &&
+                rect.bottom <= (window.innerHeight || document.documentElement.clientHeight)
+            );
+        }
+
+        function checkVisibility() {
+            if (isInViewport(imgAboutFirstRight)) {
+                imgAboutFirstRight.classList.add('slide-in-right');
+            }
+            if (isInViewport(aboutFirstLeft)) {
+                aboutFirstLeft.classList.add('slide-in-left');
+            }
+        }
+
+        window.addEventListener('scroll', checkVisibility);
+        window.addEventListener('resize', checkVisibility);
+        checkVisibility(); // Initial check in case the element is already in view
+    });
+</script>
+</html>

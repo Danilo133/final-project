@@ -1,0 +1,155 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>BioSpot - Register</title>
+    <link rel="stylesheet" type="text/css" href="{% static 'css/login.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/global.css' %}">
+    <link rel="icon" type="image/x-icon" href="{% static 'assets/favicon.ico' %}">
+</head>
+<body>
+    {% include '../navigation/_nav.html' %}
+    <div class="container">
+        <div class="form">
+            <div class="register-form">
+                <img src="{% static 'assets/logo_black.png'%}" alt="BioSpot black logo" />
+                <h1>Sign up to your account</h1>
+                <form id="register-form">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label for="first_name">First Name <span class="star">*</span></label>
+                        <input type="text" id="first_name" name="first_name" onfocus="removeValidationFail(this)" required />
+                    </div>
+                    <div class="form-group">
+                        <label for="last_name">Last Name <span class="star">*</span></label>
+                        <input type="text" id="last_name" name="last_name" onfocus="removeValidationFail(this)" required />
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Email <span class="star">*</span></label>
+                        <input type="email" id="email" name="email" onfocus="removeValidationFail(this)" required />
+                    </div>
+                    <div class="form-group">
+                        <label for="phone_number">Phone Number <span class="star">*</span></label>
+                        <input type="tel" id="phone_number" name="phone_number" onfocus="removeValidationFail(this)" required />
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Password <span class="star">*</span></label>
+                        <input type="password" id="password" name="password" onfocus="removeValidationFail(this)" required />
+                    </div>
+                    <div class="form-group">
+                        <label for="confirm_password">Confirm Password <span class="star">*</span></label>
+                        <input type="password" id="confirm_password" name="confirm_password" onfocus="removeValidationFail(this)" required />
+                    </div>
+                    <button type="button" class="btn2 submit-btn" onclick="register()">Sign Up</button>
+                    <div class="error-message"></div>
+                    <p>Already have an account? <a class="form-link" href="{% url 'login' %}#">Login here</a></p>
+                </form>
+            </div>
+        </div>
+        <div class="img-wrapper">
+            {% comment %} <img src="{% static 'assets/login.jpg'%}" alt="tree" /> {% endcomment %}
+        </div> 
+    </div>
+</body>
+<script>
+    function validateForm() {
+        let isValid = true;
+        const requiredFields = ['first_name', 'last_name', 'email', 'phone_number', 'password', 'confirm_password'];
+        requiredFields.forEach(fieldId => {
+            const field = document.getElementById(fieldId);
+            if (!field.value) {
+                field.classList.add('validationFail');
+                isValid = false;
+            } else {
+                field.classList.remove('validationFail');
+            }
+        });
+
+        if (!isValid) {
+            showError('Please fill out all the required fields.');
+            return isValid;
+        }
+    
+        // Validate email format
+        const emailField = document.getElementById('email');
+        const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailPattern.test(emailField.value)) {
+            emailField.classList.add('validationFail');
+            showError('Please enter a valid email address.');
+            isValid = false;
+            return isValid;
+        }
+
+        // Validate phone number format
+        const phoneNumberField = document.getElementById('phone_number');
+        const phonePattern = /^\+?\d+$/;
+        if (!phonePattern.test(phoneNumberField.value)) {
+            phoneNumberField.classList.add('validationFail');
+            showError('Please enter a valid phone number.');
+            isValid = false;
+            return isValid;
+        }
+    
+        return isValid;
+    }
+    
+    
+    function removeValidationFail(element) {
+        element.classList.remove('validationFail');
+    }
+
+    function showError(messageContent, duration = 10000) {
+        const errorMessage = document.querySelector('.error-message');
+        errorMessage.textContent = messageContent;
+        errorMessage.style.display = 'block';
+        setTimeout(() => {
+            errorMessage.classList.add('fade-out');
+        }, duration);
+        setTimeout(() => {
+            errorMessage.style.display = 'none';
+            errorMessage.classList.remove('fade-out');
+        }, duration + 500);
+    }
+
+    async function register() {
+        if (!validateForm()) {
+            return;
+        }
+
+        const form = document.getElementById('register-form');
+        const formData = new FormData(form);
+
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        let password = formData.get('password');
+        let confirmPassword = formData.get('confirm_password');
+        
+        if (password === confirmPassword) {
+            try {
+                const response = await fetch(`{% url 'register_user' %}`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrfToken,
+                    },
+                    body: formData,
+                });
+
+                if (!response.ok) {
+                    const result = await response.json();
+                    showError(result.message)
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                else {
+                    window.location.href = '/login?message=Registration successful. Please log in.';
+                }
+
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+        else {
+            document.querySelector('.error-message').textContent = 'Passwords do not match';
+            document.querySelector('.error-message').style.display = 'block';
+        }
+    }
+</script>
+</html>

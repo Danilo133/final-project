@@ -1,0 +1,96 @@
+.container {
+    display: flex;
+}
+
+.container .form,
+.container .img-wrapper {
+    flex-basis: 50%;
+    align-self: center;
+    text-align: center;
+}
+
+.container .img-wrapper {
+    background-image: url(/static/assets/login.jpg);
+    background-size: cover;
+    background-position: center;
+    height: 100vh;
+}
+
+.container .login-form,
+.container .register-form {
+    display: inline-block;
+}
+
+.container .form {
+    padding: 50px 0;
+}
+
+.form-link {
+    cursor: pointer;
+}
+
+.submit-btn {
+    width: 100%;
+}
+
+.form-group {
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group label {
+    padding-left: 5px;
+    margin-bottom: 3px;
+    text-align: left;
+}
+
+.form-group label .star {
+    color: #EB0000;
+}
+
+.form-group input {
+    height: 30px;
+    border: 1px solid #a2a2a2;
+    border-radius: 5px;
+    padding: 0 5px;
+}
+
+.error-message {
+    display: none;
+    margin-top: 10px;
+    color: #EB0000;
+    font-weight: bold;
+}
+
+#message {
+    color: #43CEA4;
+    font-weight: bold;
+}
+
+.validationFail {
+    border: 2px solid #EB0000 !important;
+}
+
+.fade-out {
+    animation: fadeOut 0.5s ease-in-out forwards;
+}
+
+@keyframes fadeOut {
+    to {
+        opacity: 0;
+    }
+}
+
+@media (max-width: 991px) {
+    .container {
+        flex-direction: column;
+    }
+
+    .container .img-wrapper {
+        width: 100%;
+        min-height: 100vh;
+        border-top-left-radius: 50%;
+        border-top-right-radius: 50%;
+    }
+}

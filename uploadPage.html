@@ -1,0 +1,342 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" type="text/css" href="{% static 'css/uploadPage.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/global.css' %}">
+    <link rel="icon" type="image/x-icon" href="{% static 'assets/favicon.ico' %}">
+    <title>BioSpot - Upload</title>
+</head>
+<body>
+    {% include 'navigation/_nav.html' %}
+
+    <main class="form-wrapper">
+        <form id="upload-form" class="form-container">
+            {% csrf_token %}
+            <div class="upper-text">
+                <h1>Upload to BioSpot</h1>
+                <h2>Individual Plant Record</h2>
+                <p class="text-gray">This information will be displayed publicly so please try to provide as many details as possible</p>
+            </div>
+
+            <div class="form-group">
+                <label for="datetime">Date and Time of Photographing:</label>
+                <input type="datetime-local" id="datetime" name="datetime" onfocus="removeValidationFail(this)">
+            </div>
+    
+            <div class="form-group">
+                <label for="locality">Locality Name:</label>
+                <input type="text" id="locality" name="locality" onfocus="removeValidationFail(this)">
+            </div>
+    
+            <div class="form-group">
+                <label for="plant_name_serbian">Plant Name (Serbian):</label>
+                <input type="text" id="plant_name_serbian" name="plant_name_serbian" onfocus="removeValidationFail(this)">
+            </div>
+    
+            <div class="form-group">
+                <label for="plant_name_latin">Plant Name (Latin):</label>
+                <input type="text" id="plant_name_latin" name="plant_name_latin" onfocus="removeValidationFail(this)">
+            </div>
+    
+            <div class="form-group">
+                <label for="plant_species_serbian">Plant Species (Serbian):</label>
+                <select id="plant_species_serbian" name="plant_species_serbian" onchange="updateLatinName()" onfocus="removeValidationFail(this)">
+                    <option value="">Select Species </option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="plant_species_latin">Plant Species (Latin):</label>
+                <select id="plant_species_latin" name="plant_species_latin" disabled>
+                    <option value="">Select Species</option>
+                </select>
+            </div>
+    
+            <div class="form-group">
+             
+                <label for="about">About:</label>
+                    <div class="area-wrapper">
+                    <textarea id="about" name="about" rows="4" cols="50"></textarea>
+                    <p class="text-gray area-text">Write a few sentences about the record.</p>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="photos">Upload Photos:</label>
+                <input type="file" id="photos" name="photos" accept="image/*" multiple onfocus="removeValidationFail(this)" hidden>
+                <div class="select-btn-wrapper">
+                    <button type="button" class="btn3" onClick="selectBtnClick()">Select</button>
+                    <span id="file-count">No files selected</span>
+                </div>
+            </div>
+
+            <div class="error-message" id="error-message">
+                <p>Please fill all the required fields.</p>
+            </div>
+            <div class="success-message" id="success-message">
+                <p>Submission successful!</p>
+            </div>
+            <div class="progress-bar-container" id="progress-bar-container">
+                <p>Upload in progress, please wait.</p>
+                <div class="progress-bar" id="progress-bar"></div>
+                <div>
+                    <p id="progress-bar-percentage">0%</p>
+                </div>
+            </div>
+            <div class="upload-error-message" id="upload-error-message">
+                <p>An error occurred during upload or record submission. Please try again.</p>
+            </div>
+
+            <div class="form-group">
+                <button type="button" class="btn2" onclick="submitForm()">Submit</button>
+            </div>
+        </form>
+    </main>
+
+    <script id="user-data" type="application/json">
+        {{ user_data|safe }}
+    </script>
+    <script id="plants-data" type="application/json">
+        {{ plants_data|safe }}
+    </script>
+  
+    <script>
+        const userData = JSON.parse(document.getElementById('user-data').textContent);
+        const username = userData.username;
+        let timestamp = Date.now();
+        let sessionID = userData.username + '_' + timestamp;
+        const fileCountSpan = document.getElementById('file-count');
+        
+        // Plants options logic
+        const plants = JSON.parse(document.getElementById('plants-data').textContent);
+        document.addEventListener('DOMContentLoaded', (event) => {
+            const serbianSelect = document.getElementById('plant_species_serbian');
+            plants.forEach(plant => {
+                const option = document.createElement('option');
+                option.value = plant.id;
+                option.textContent = plant.serbian_name;
+                serbianSelect.appendChild(option);
+            });
+        });
+
+        function validateForm() {
+            let isValid = true;
+            const requiredFields = ['datetime', 'locality', 'plant_name_serbian', 'plant_name_latin', 'plant_species_serbian'];
+            requiredFields.forEach(fieldId => {
+                const field = document.getElementById(fieldId);
+                if (!field.value) {
+                    field.classList.add('validationFail');
+                    isValid = false;
+                } else {
+                    field.classList.remove('validationFail');
+                }
+            });
+        
+            const photosInput = document.getElementById('photos');
+        
+            if (photosInput.files.length === 0) {
+                fileCountSpan.classList.add('text-red-bold');
+                isValid = false;
+            }
+        
+            if (!isValid) {
+                showError();
+            }
+        
+            return isValid;
+        }
+
+        function showMessage(messageId, duration = 10000) {
+            const messageElement = document.getElementById(messageId);
+            messageElement.style.display = 'block';
+            setTimeout(() => {
+                messageElement.classList.add('fade-out');
+            }, duration);
+            setTimeout(() => {
+                messageElement.style.display = 'none';
+                messageElement.classList.remove('fade-out');
+            }, duration + 500);
+        }
+        
+        function showError() {
+            showMessage('error-message');
+        }
+        
+        function showSuccess() {
+            showMessage('success-message');
+        }
+        
+        function showUploadError() {
+            showMessage('upload-error-message');
+        }
+
+        function selectBtnClick() {
+            const selectFileElement = document.getElementById('photos')
+            selectFileElement.click();
+        }
+
+        document.getElementById('photos').addEventListener('change', function() {
+            const fileCount = this.files.length;
+            const fileCountSpan = document.getElementById('file-count');
+            
+            if (fileCount > 0) {
+                fileCountSpan.textContent = `${fileCount} file(s) selected`;
+                fileCountSpan.classList.remove('text-red-bold')
+            } else {
+                fileCountSpan.textContent = 'No files selected';
+            }
+        });
+
+        async function submitForm() {
+            if (!validateForm()) {
+                return;
+            }
+        
+            const form = document.getElementById('upload-form');
+            const formData = new FormData(form);
+            formData.append('sessionID', sessionID);
+            formData.append('first_name', userData.firstName);
+            formData.append('last_name', userData.lastName);
+            formData.append('email', userData.email);
+        
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+            const submitButton = document.querySelector('button[type="button"]');
+            submitButton.disabled = true; 
+            
+            const photosInput = document.getElementById('photos');
+            const totalFiles = photosInput.files.length;
+            let uploadedFiles = 0;
+        
+            const progressBarContainer = document.getElementById('progress-bar-container');
+            const progressBar = document.getElementById('progress-bar');
+            const progressBarPercentage = document.getElementById('progress-bar-percentage');
+            progressBarContainer.style.display = 'block';
+        
+            // File upload to s3 bucket
+            for (const value of photosInput.files) {
+                try {
+                    // Fetching presigned URL starts
+                    const params = new URLSearchParams({
+                        content_type: value.type,
+                        batch_path: sessionID,
+                        file_name: value.name
+                    });
+                
+                    const presignedUrlResponse = await fetch(`{% url 'generatePresignedURL' %}?${params.toString()}`, {
+                        method: 'GET',
+                        headers: {
+                            'X-CSRFToken': csrfToken
+                        }
+                    });
+                
+                    if (!presignedUrlResponse.ok) {
+                        throw new Error('Failed to get presigned URL');
+                    }
+        
+                    const presignedUrlData = await presignedUrlResponse.json();
+                    const presignedUrl = presignedUrlData.url;
+                    
+                    // Upload starts
+                    const uploadResponse = await fetch(presignedUrl, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': value.type
+                        },
+                        body: value
+                    });
+        
+                    if (!uploadResponse.ok) {
+                        throw new Error('Failed to upload file to presigned URL');
+                    }
+        
+                    // Update progress bar
+                    uploadedFiles++;
+                    const progress = (uploadedFiles / totalFiles) * 100;
+                    progressBar.style.width = progress + '%';
+                    progressBarPercentage.textContent = Math.round(progress) + '%';
+        
+                } catch (error) {
+                    console.error('Error uploading file:', error);
+                    progressBarContainer.style.display = 'none';
+                    showUploadError();
+                    submitButton.disabled = false; 
+                    return;
+                }
+            }
+            
+            // Record submission
+            try {
+                const response = await fetch("{% url 'uploadFormSubmit' %}", {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrfToken
+                    },
+                    body: formData
+                });
+        
+                const result = await response.json();
+        
+                if (response.ok) {
+                    showSuccess();
+                    setTimeout(() => {
+                        progressBarContainer.classList.add('fade-out');
+                    }, 5000);
+                    setTimeout(() => {
+                        progressBarContainer.style.display = 'none';
+                        progressBarContainer.classList.remove('fade-out');
+                        //progress bar reset
+                        progressBar.style.width = '0%';
+                        progressBarPercentage.textContent = '0%';
+                    }, 5500);
+                    //form reset
+                    form.reset();
+                    const latinSelect = document.getElementById('plant_species_latin');
+                    latinSelect.innerHTML = '<option value="">Select Species</option>';
+                    fileCountSpan.textContent = 'No files selected';
+                    
+
+                } else {
+                    console.error('Error:', result.message);
+                    console.log('There was an error with your submission: ' + result.message);
+                    progressBarContainer.style.display = 'none';
+                    showUploadError();
+                }
+            } catch (error) {
+                console.error('Unexpected Error:', error);
+                console.log('An unexpected error occurred: ' + error.message);
+                progressBarContainer.style.display = 'none';
+                progressBar.style.width = '0%';
+                progressBarPercentage.textContent = '0%';
+                showUploadError();
+            } finally {
+                submitButton.disabled = false; 
+                timestamp = Date.now()
+                sessionID = userData.username + '_' + timestamp;
+            }
+        }
+        
+
+        function updateLatinName() {
+            const serbianSelect = document.getElementById('plant_species_serbian');
+            const latinSelect = document.getElementById('plant_species_latin');
+            const selectedSerbianId = serbianSelect.value;
+            
+            const selectedPlant = plants.find(plant => plant.id == selectedSerbianId);
+            if (selectedPlant) {
+                latinSelect.innerHTML = `<option value="${selectedPlant.id}">${selectedPlant.latin_name}</option>`;
+            } else {
+                latinSelect.innerHTML = '<option value="">Select Species</option>';
+            }
+        }
+
+        function removeValidationFail(element) {
+            element.classList.remove('validationFail');
+        }
+    </script>
+    
+</body>
+</html>
